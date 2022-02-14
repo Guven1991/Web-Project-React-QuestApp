@@ -7,6 +7,7 @@ import PostForm from "../Post/PostForm";
 const useStyles = makeStyles((theme) => ({
     container:{
         display: "flex",
+        flexDirection:"column",
         flexWrap:"wrap",
         justifyContent :"center",
         alignItems:"center",
@@ -17,7 +18,7 @@ const useStyles = makeStyles((theme) => ({
 
 function Home() {
     const [error, setError] = useState(null);
-    const [isLoaded, setIsloaded] = useState(false);
+    const [isLoaded, setIsLoaded] = useState(false);
     const [postList, setPostList] = useState([]);
     const classes = useStyles();
 
@@ -26,11 +27,11 @@ function Home() {
             .then(response => response.json())
             .then(
                 (result) => {
-                    setIsloaded(true);
+                    setIsLoaded(true);
                     setPostList(result);
                 },
                 (error) => {
-                    setIsloaded(true);
+                    setIsLoaded(true);
                     setError(error);
                 }
             )
@@ -50,7 +51,7 @@ function Home() {
             <div className={classes.container}>
                 <PostForm userId={1} username={"ddd"} refreshPosts={refreshPosts} />
                 {postList.map(post => (
-                    <Post postId={post.id} userId={post.userId} username={post.username}
+                    <Post likes = {post.postLikes} postId={post.id} userId={post.userId} username={post.username}
                           title={post.title} text={post.text} />
                 ))}
             </div>

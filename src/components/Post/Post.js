@@ -1,18 +1,21 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useState, useRef, useEffect} from "react";
 import {Link} from "react-router-dom";
-import Card from '@mui/material/Card';
-import CardHeader from '@mui/material/CardHeader';
-import CardContent from '@mui/material/CardContent';
-import CardActions from '@mui/material/CardActions';
-import Collapse from '@mui/material/Collapse';
-import Avatar from '@mui/material/Avatar';
-import IconButton from '@mui/material/IconButton';
-import Typography from '@mui/material/Typography';
-import FavoriteIcon from '@mui/icons-material/Favorite';
-import {makeStyles} from "@material-ui/core/styles";
-import InsertCommentIcon from '@mui/icons-material/InsertComment';
+import { makeStyles } from '@material-ui/core/styles';
+import Card from '@material-ui/core/Card';
+import CardHeader from '@material-ui/core/CardHeader';
+import CardContent from '@material-ui/core/CardContent';
+import CardActions from '@material-ui/core/CardActions';
+import Collapse from '@material-ui/core/Collapse';
+import Avatar from '@material-ui/core/Avatar';
+import IconButton from '@material-ui/core/IconButton';
+import Typography from '@material-ui/core/Typography';
 import Container from '@material-ui/core/Container';
+import FavoriteIcon from '@material-ui/icons/Favorite';
 import Comment from "../Comment/Comment";
+import CommentIcon from '@material-ui/icons/Comment';
+import clsx from "clsx";
+import CommentForm from "../Comment/CommentForm";
+
 
 
 const useStyles = makeStyles((theme) => ({
@@ -45,16 +48,16 @@ const useStyles = makeStyles((theme) => ({
 
 
 function Post(props) {
-    const {title, text, username, userId, postId} = props;
+    const {title, text, username, userId, postId, likes} = props;
     const [expanded, setExpanded] = useState(false);
     const classes = useStyles();
-    const [liked, setLiked] = useState(false);
     const [commentList, setCommentList] = useState([]);
     const [error, setError] = useState(null);
     const [isLoaded, setIsLoaded] = useState(false);
+    const [isLiked, setIsLiked] = useState(false);
+    const [likeCount, setLikeCount] = useState(likes.length);
     const isInitialMount = useRef(true);
-
-
+    const [likeId, setLikeId] = useState(null);
     const handleExpandClick = () => {
         setExpanded(!expanded);
         refreshComments();
@@ -62,7 +65,16 @@ function Post(props) {
     };
 
     const handleLike = () => {
-        setLiked(!liked);
+        setIsLiked(!isLiked);
+        if(!isLiked){
+            saveLike();
+            setLikeCount(likeCount +1)
+        }
+        else{
+            deleteLike();
+            setLikeCount(likeCount - 1)
+        }
+
 
     }
 
@@ -83,12 +95,46 @@ function Post(props) {
 
     }
 
+    const saveLike = () => {
+        fetch("/likes",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    postId: postId,
+                    userId: userId,
+                }),
+            })
+            .then((res) => res.json())
+            .catch((err) => console.log(err))
+    }
 
+    const deleteLike = () => {
+        fetch("/likes/"+likeId, {
+            method: "DELETE",
+        })
+            .catch((err) => console.log(err))
+    }
+
+    const checkLikes =() => {
+        var likeControl = likes.find((like => like.userId === userId));
+        if(likeControl != null){
+            setLikeId(likeControl.id)
+            setIsLiked(true);
+        }
+
+    }
     useEffect(() => {
         if(isInitialMount.current)
             isInitialMount.current = false;
         else
             refreshComments();
+    }, [])
+
+    useEffect(() => {
+        checkLikes()
     }, [])
 
     return (
@@ -100,7 +146,6 @@ function Post(props) {
                                 {username.charAt(0).toUpperCase()}
                             </Avatar>
                         </Link>
-
                     }
                     title={title}
                 />
@@ -113,23 +158,27 @@ function Post(props) {
                     <IconButton
                         onClick={handleLike}
                         aria-label="add to favorites">
-                        <FavoriteIcon style={liked ? {color: "red"} : null}/>
+                        <FavoriteIcon style={isLiked ? {color: "red"} : null}/>
                     </IconButton>
+                    {likeCount}
                     <IconButton
-                        expand={expanded}
+                        className={clsx(classes.expand, {
+                            [classes.expandOpen]: expanded,
+                        })}
                         onClick={handleExpandClick}
                         aria-expanded={expanded}
                         aria-label="show more"
                     >
-                        <InsertCommentIcon/>
+                        <CommentIcon />
                     </IconButton>
                 </CardActions>
                 <Collapse in={expanded} timeout="auto" unmountOnExit>
                     <Container fixed className = {classes.container}>
                         {error? "error" :
                             isLoaded? commentList.map(comment => (
-                                <Comment userId = {comment.userId} username = {comment.username} text = {comment.text}></Comment>
+                                <Comment userId = {1} username = {"USER"} text = {comment.text}></Comment>
                             )) : "Loading"}
+                        <CommentForm userId = {1} username = {"USER"} postId = {postId}></CommentForm>
                     </Container>
                 </Collapse>
             </Card>

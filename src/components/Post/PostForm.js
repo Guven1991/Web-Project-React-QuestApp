@@ -148,7 +148,6 @@ function PostForm(props) {
                         </OutlinedInput>
                     </Typography>
                 </CardContent>
-
             </Card>
         </div>
     )
