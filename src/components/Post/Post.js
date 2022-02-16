@@ -99,7 +99,7 @@ function Post(props) {
                     setError(error);
                 }
             )
-
+        setRefresh(false)
     }
 
     const saveLike = () => {
